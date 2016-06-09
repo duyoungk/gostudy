@@ -1,1 +1,1 @@
-"# gostudy" 
+# gostudy
