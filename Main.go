@@ -3,16 +3,18 @@ package main
 import (
 	"bufio"
 	_ "encoding/json"
-	"flag"
+	_ "flag"
 	"fmt"
 	_ "io/ioutil"
-	"log"
-	"net"
-	"net/rpc"
-	"os"
+	_ "log"
+	_ "net"
+	_ "net/rpc"
+	_ "os"
 	"os/exec"
-	"strconv"
-	"strings"
+	_ "strconv"
+	_ "strings"
+
+	"github.com/mitchellh/go-ps"
 )
 
 type ServerInfo struct {
@@ -64,30 +66,31 @@ var ip string
 var port int
 var command string
 
-func init() {
-	flag.StringVar(&mode, "mode", "client", "run mode [client|server]")
-	flag.StringVar(&ip, "ip", "", "")
-	flag.IntVar(&port, "port", 0, "")
-	flag.StringVar(&command, "cmd", "", "")
-	flag.Parse()
+//func init() {
+//	flag.StringVar(&mode, "mode", "client", "run mode [client|server]")
+//	flag.StringVar(&ip, "ip", "", "")
+//	flag.IntVar(&port, "port", 0, "")
+//	flag.StringVar(&command, "cmd", "", "")
+//	flag.Parse()
 
-	mode = strings.ToLower(mode)
+//	mode = strings.ToLower(mode)
 
-	if mode == "client" && ip == "" {
-		fmt.Println("missing ip")
-		os.Exit(1)
-	}
-	if mode == "client" && port == 0 {
-		fmt.Println("missing port")
-		os.Exit(1)
-	}
-	if mode == "server" && port == 0 {
-		fmt.Println("missing port")
-		os.Exit(1)
-	}
-}
+//	if mode == "client" && ip == "" {
+//		fmt.Println("missing ip")
+//		os.Exit(1)
+//	}
+//	if mode == "client" && port == 0 {
+//		fmt.Println("missing port")
+//		os.Exit(1)
+//	}
+//	if mode == "server" && port == 0 {
+//		fmt.Println("missing port")
+//		os.Exit(1)
+//	}
+//}
 func main() {
 
+	//  json test
 	// file, e := ioutil.ReadFile("./config.json")
 	// if e != nil {
 	//     fmt.Printf("File Open Error: %v\n", e)
@@ -101,74 +104,85 @@ func main() {
 	//     fmt.Printf("ip : %s port : %d\n", obj.Ip, obj.Port)
 	// }
 
-	switch mode {
-	case "client":
-		fmt.Println("client mode")
-		addr := ip + ":" + strconv.Itoa(port)
+	// rpc test
+	//	switch mode {
+	//	case "client":
+	//		fmt.Println("client mode")
+	//		addr := ip + ":" + strconv.Itoa(port)
 
-		client, err := rpc.Dial("tcp", addr)
-		if err != nil {
-			log.Fatal("dialing: ", err)
-			return
-		}
-		defer client.Close()
-		fmt.Println("Connected!!")
+	//		client, err := rpc.Dial("tcp", addr)
+	//		if err != nil {
+	//			log.Fatal("dialing: ", err)
+	//			return
+	//		}
+	//		defer client.Close()
+	//		fmt.Println("Connected!!")
 
-		if command != "" {
-			args := &CmdArgs{command, ""}
-			reply := new(CmdReply)
-			err = client.Call("Commander.Execute", args, reply)
-			if err != nil {
-				fmt.Println("cannot execute command")
-				return
-			}
-			fmt.Println(reply.ReplyString)
-		}
+	//		if command != "" {
+	//			args := &CmdArgs{command, ""}
+	//			reply := new(CmdReply)
+	//			err = client.Call("Commander.Execute", args, reply)
+	//			if err != nil {
+	//				fmt.Println("cannot execute command")
+	//				return
+	//			}
+	//			fmt.Println(reply.ReplyString)
+	//		}
 
-		//		args := &Args{1, 2}
-		//		reply := new(Reply)
-		//		err = client.Call("Calc.Sum", args, reply)
-		//		if err != nil {
-		//			log.Fatal("call error:", err)
-		//			return
-		//		}
-		//		fmt.Printf("%d + %d = %d\n", args.A, args.B, reply.C)
+	//		//		args := &Args{1, 2}
+	//		//		reply := new(Reply)
+	//		//		err = client.Call("Calc.Sum", args, reply)
+	//		//		if err != nil {
+	//		//			log.Fatal("call error:", err)
+	//		//			return
+	//		//		}
+	//		//		fmt.Printf("%d + %d = %d\n", args.A, args.B, reply.C)
 
-		//		args2 := &CmdArgs{"dir", ""}
-		//		reply2 := new(CmdReply)
-		//		err = client.Call("Commander.Execute", args2, reply2)
-		//		if err != nil {
-		//			log.Fatal("call error:", err)
-		//			return
-		//		}
-		//		fmt.Printf("result %s\n", reply2.ReplyString)
+	//		//		args2 := &CmdArgs{"dir", ""}
+	//		//		reply2 := new(CmdReply)
+	//		//		err = client.Call("Commander.Execute", args2, reply2)
+	//		//		if err != nil {
+	//		//			log.Fatal("call error:", err)
+	//		//			return
+	//		//		}
+	//		//		fmt.Printf("result %s\n", reply2.ReplyString)
 
-	case "server":
-		fmt.Println("server mode")
-		calc := new(Calc)
-		commander := new(Commander)
-		rpc.Register(calc)
-		rpc.Register(commander)
-		l, e := net.Listen("tcp", ":"+strconv.Itoa(port))
-		if e != nil {
-			log.Fatal("listen error:", e)
-		}
-		defer l.Close()
+	//	case "server":
+	//		fmt.Println("server mode")
+	//		calc := new(Calc)
+	//		commander := new(Commander)
+	//		rpc.Register(calc)
+	//		rpc.Register(commander)
+	//		l, e := net.Listen("tcp", ":"+strconv.Itoa(port))
+	//		if e != nil {
+	//			log.Fatal("listen error:", e)
+	//		}
+	//		defer l.Close()
 
-		for {
-			fmt.Println("Waiting...")
-			conn, err := l.Accept()
-			if err != nil {
-				fmt.Println("Accept error:", err)
-				continue
-			}
-			defer conn.Close()
-			fmt.Println("Accepted!!")
-			go rpc.ServeConn(conn)
-		}
+	//		for {
+	//			fmt.Println("Waiting...")
+	//			conn, err := l.Accept()
+	//			if err != nil {
+	//				fmt.Println("Accept error:", err)
+	//				continue
+	//			}
+	//			defer conn.Close()
+	//			fmt.Println("Accepted!!")
+	//			go rpc.ServeConn(conn)
+	//		}
 
-	default:
-		fmt.Println("End")
+	//	default:
+	//		fmt.Println("End")
+	//	}
+
+	p, err := ps.Processes()
+	if err != nil {
+		fmt.Println(err.Error)
+		return
+	}
+
+	for _, p1 := range p {
+		fmt.Println(p1.Executable())
 	}
 
 }
